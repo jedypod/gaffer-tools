@@ -1,5 +1,5 @@
 # Gaffer Tools
-A collection of tools for [Gaffer](https://www.gafferhq.org).
+A collection of tools for [Gaffer](https://www.gafferhq.org) primarily focusing on image, color, and plotting.
 
 # Installation
 First, clone this repo to some location on disk, let's call it `/path/to/gaffer-tools`.
