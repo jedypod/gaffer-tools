@@ -34,7 +34,7 @@ def addMenuEntryGrf(menuPath):
 	fileNameWithExt = os.path.basename(menuPath)
 	fileName, ext = os.path.splitext(fileNameWithExt)
 	menuPath, ext = os.path.splitext(menuPath) # remove file extension from menu entry
-
+	
 	nodeMenu.append(
 		path=menuPath,
 		nodeCreator=lambda: Gaffer.Reference(fileName),
@@ -44,14 +44,7 @@ def addMenuEntryGrf(menuPath):
 
 
 
-def tmpDot(menu):
-	root = menu.ancestor(GafferUI.GraphEditor).graphGadget().getRoot()
-	# Clear selection before we create anything to avoid disconnected nodes in existing selection.
-	root.selection().clear()
-	return Gaffer.Dot()
-
-
-def importGfr(filePath, node, menu):
+def importGfr(filePath, menu):
 	""" Import a gfr gaffer script into the nodegraph. Mostly copied from
 			GafferUI.FileMenu.importFile()
 
@@ -63,42 +56,26 @@ def importGfr(filePath, node, menu):
 
 	# Get the graph location from the node menu
 	graphEditor = menu.ancestor(GafferUI.GraphEditor)
+	script = graphEditor.scriptNode()
 	graphGadget = graphEditor.graphGadget()
 	root = graphGadget.getRoot()
-	root.selection().clear()
-	# Track the nodes that are imported, so we can select and place them properly.
-	newChildren = []
-	c = root.childAddedSignal().connect(lambda parent, child: newChildren.append(child), scoped=True)
-	root.importFile(filePath, parent=root, continueOnError=True)
-	newNodes = [c for c in newChildren if isinstance(c, Gaffer.Node)]
-	root.selection().add(newNodes)
-	graphLocation = graphEditor.bound().size() / 2
-	graphLocation = graphEditor.graphGadgetWidget().getViewportGadget().rasterToGadgetSpace(
-		imath.V2f(graphLocation.x, graphLocation.y),
-		gadget = graphEditor.graphGadget(),
-	).p0
-	graphLocation = imath.V2f(graphLocation.x, graphLocation.y)
-	graphGadget.getLayout().positionNodes(graphGadget, root.selection(), graphLocation)
-	graphEditor.frame(root.selection(), extend=True)
-
-	# remove temp node from nodeCreator
-	root.removeChild(node)
-
-
-def addMenuEntryGfr(filePath, menuPath):
-	""" Add menu entry for gfr gaffer script at location filePath
-
-	Args:
-			filePath (str): full path on disk where a gfr script is located.
-			menuPath (str): path to use for the menu entry, including file extension and leading /
-	"""
-	nodeMenu.append(
-		path=menuPath,
-		nodeCreator=tmpDot,
-		postCreator=functools.partial(importGfr, filePath),
-		searchText=os.path.basename(menuPath)
-	)
-
+	with Gaffer.UndoScope(script):
+		root.selection().clear()
+		# Track the nodes that are imported, so we can select and place them properly.
+		newChildren = []
+		c = root.childAddedSignal().connect(lambda parent, child: newChildren.append(child), scoped=True)
+		root.importFile(filePath, parent=root, continueOnError=True)
+		newNodes = [c for c in newChildren if isinstance(c, Gaffer.Node)]
+		root.selection().add(newNodes)
+		graphLocation = graphEditor.bound().size() / 2
+		graphLocation = graphEditor.graphGadgetWidget().getViewportGadget().rasterToGadgetSpace(
+			imath.V2f(graphLocation.x, graphLocation.y),
+			gadget = graphEditor.graphGadget(),
+		).p0
+		graphLocation = imath.V2f(graphLocation.x, graphLocation.y)
+		graphGadget.getLayout().positionNodes(graphGadget, root.selection(), graphLocation)
+		graphEditor.frame(root.selection(), extend=True)
+	return newNodes
 
 
 def createMenus(baseDir):
@@ -130,8 +107,9 @@ def createMenus(baseDir):
 				if root not in os.environ.get('GAFFER_REFERENCE_PATHS'):
 					os.environ['GAFFER_REFERENCE_PATHS'] = root + os.pathsep + os.environ['GAFFER_REFERENCE_PATHS']
 			elif file.lower().endswith('.gfr'):
+				# Path to use for the menu entry
 				menuPath, ext = os.path.splitext(menuPath)
-				addMenuEntryGfr(filePath, menuPath)
+				nodeMenu.definition().append(menuPath, {'command': functools.partial(importGfr, filePath)})
 
 if GAFFER_TOOLS_ROOT:
 	createMenus(GAFFER_TOOLS_ROOT)
