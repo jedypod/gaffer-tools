@@ -1,0 +1,51 @@
+import Gaffer
+import GafferImage
+import IECore
+import imath
+
+Gaffer.Metadata.registerValue( parent, "serialiser:milestoneVersion", 1, persistent=False )
+Gaffer.Metadata.registerValue( parent, "serialiser:majorVersion", 3, persistent=False )
+Gaffer.Metadata.registerValue( parent, "serialiser:minorVersion", 0, persistent=False )
+Gaffer.Metadata.registerValue( parent, "serialiser:patchVersion", 0, persistent=False )
+
+__children = {}
+
+__children["BFD"] = Gaffer.Reference( "BFD" )
+parent.addChild( __children["BFD"] )
+__children["BFD"].load( "BFD.grf" )
+__children["BFD"].addChild( Gaffer.V2fPlug( "__uiPosition", defaultValue = imath.V2f( 0, 0 ), flags = Gaffer.Plug.Flags.Default | Gaffer.Plug.Flags.Dynamic, ) )
+__children["HueSwatch"] = Gaffer.Reference( "HueSwatch" )
+parent.addChild( __children["HueSwatch"] )
+__children["HueSwatch"].load( "HueSwatch.grf" )
+__children["HueSwatch"].addChild( Gaffer.V2fPlug( "__uiPosition", defaultValue = imath.V2f( 0, 0 ), flags = Gaffer.Plug.Flags.Default | Gaffer.Plug.Flags.Dynamic, ) )
+__children["Expression"] = Gaffer.Expression( "Expression" )
+parent.addChild( __children["Expression"] )
+__children["Expression"]["__in"].addChild( Gaffer.V2iPlug( "p0", defaultValue = imath.V2i( 6, 3 ), flags = Gaffer.Plug.Flags.Default | Gaffer.Plug.Flags.Dynamic, ) )
+__children["Expression"]["__in"].addChild( Gaffer.IntPlug( "p1", defaultValue = 0, flags = Gaffer.Plug.Flags.Default | Gaffer.Plug.Flags.Dynamic, ) )
+__children["Expression"]["__out"].addChild( Gaffer.FloatPlug( "p0", direction = Gaffer.Plug.Direction.Out, defaultValue = 0.0, flags = Gaffer.Plug.Flags.Default | Gaffer.Plug.Flags.Dynamic, ) )
+__children["Expression"].addChild( Gaffer.V2fPlug( "__uiPosition", defaultValue = imath.V2f( 0, 0 ), flags = Gaffer.Plug.Flags.Default | Gaffer.Plug.Flags.Dynamic, ) )
+Gaffer.Metadata.registerValue( __children["BFD"], 'noduleLayout:customGadget:addButtonTop:visible', False )
+Gaffer.Metadata.registerValue( __children["BFD"], 'noduleLayout:customGadget:addButtonBottom:visible', False )
+Gaffer.Metadata.registerValue( __children["BFD"], 'noduleLayout:customGadget:addButtonLeft:visible', False )
+Gaffer.Metadata.registerValue( __children["BFD"], 'noduleLayout:customGadget:addButtonRight:visible', False )
+Gaffer.Metadata.registerValue( __children["BFD"], 'description', 'Creates a contact sheet or "Big Fucking Deal" of all items in a grid, controlled by the loop:index context variable (exposed as the index plug). This index plug can be expression linked to control iteration over the input.' )
+__children["BFD"]["__uiPosition"].setValue( imath.V2f( 5.87948132, -17.4255772 ) )
+__children["BFD"]["in"].setInput( __children["HueSwatch"]["out"] )
+Gaffer.Metadata.registerValue( __children["HueSwatch"], 'uiEditor:emptySections', IECore.StringVectorData( [  ] ) )
+Gaffer.Metadata.registerValue( __children["HueSwatch"], 'uiEditor:emptySectionIndices', IECore.IntVectorData( [  ] ) )
+Gaffer.Metadata.registerValue( __children["HueSwatch"], 'noduleLayout:customGadget:addButtonTop:visible', False )
+Gaffer.Metadata.registerValue( __children["HueSwatch"], 'noduleLayout:customGadget:addButtonLeft:visible', False )
+Gaffer.Metadata.registerValue( __children["HueSwatch"], 'noduleLayout:customGadget:addButtonRight:visible', False )
+Gaffer.Metadata.registerValue( __children["HueSwatch"], 'noduleLayout:customGadget:addButtonBottom:visible', False )
+Gaffer.Metadata.registerValue( __children["HueSwatch"], 'description', 'Generate a UV Map of the incoming image.' )
+__children["HueSwatch"]["__uiPosition"].setValue( imath.V2f( 5.87948132, -11.4255772 ) )
+__children["HueSwatch"]["hue"].setInput( __children["Expression"]["__out"]["p0"] )
+__children["Expression"]["__in"]["p0"].setInput( __children["BFD"]["grid"] )
+__children["Expression"]["__in"]["p1"].setInput( __children["BFD"]["index"] )
+__children["Expression"]["__uiPosition"].setValue( imath.V2f( 10.4244785, -10.2264547 ) )
+__children["Expression"]["__engine"].setValue( 'python' )
+__children["Expression"]["__expression"].setValue( '# context var for loop iteration index\nindex = parent["__in"]["p1"]\n\ngrid = parent["__in"]["p0"]\ntiles = grid.x*grid.y\n\nparent["__out"]["p0"] = index*(6/tiles)' )
+
+
+del __children
+

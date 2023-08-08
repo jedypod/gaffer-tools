@@ -1,0 +1,22 @@
+import Gaffer
+import GafferImage
+import imath
+
+Gaffer.Metadata.registerValue( parent, "serialiser:milestoneVersion", 1, persistent=False )
+Gaffer.Metadata.registerValue( parent, "serialiser:majorVersion", 3, persistent=False )
+Gaffer.Metadata.registerValue( parent, "serialiser:minorVersion", 0, persistent=False )
+Gaffer.Metadata.registerValue( parent, "serialiser:patchVersion", 0, persistent=False )
+
+__children = {}
+
+__children["Resample"] = GafferImage.Resample( "Resample" )
+parent.addChild( __children["Resample"] )
+__children["Resample"].addChild( Gaffer.V2fPlug( "__uiPosition", defaultValue = imath.V2f( 0, 0 ), flags = Gaffer.Plug.Flags.Default | Gaffer.Plug.Flags.Dynamic, ) )
+__children["Resample"]["filter"].setValue( 'gaussian' )
+__children["Resample"]["filterScale"]["x"].setValue( 9.999999747378752e-05 )
+__children["Resample"]["filterScale"]["y"].setInput( __children["Resample"]["filterScale"]["x"] )
+__children["Resample"]["__uiPosition"].setValue( imath.V2f( -26.8124599, -13.1572695 ) )
+
+
+del __children
+
